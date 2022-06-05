@@ -18,6 +18,28 @@ import pandas
 """
 
 
+def get_coord(domen):
+    """полечение координат и id точек выдачи"""
+    url = f'https://{domen}/webapi/spa/modules/pickups'
+    headers = {'User-Agent': "Mozilla/5.0", 'content-type': "application/json", 'x-requested-with': 'XMLHttpRequest'}
+    r = requests.get(url, headers=headers)
+    data = r.json()
+    # """сохраняем id  с координатами  в json"""
+    # with open('wild_points_coord.json', 'w', encoding='UTF-8') as file:
+    #     json.dump(data, file, indent=2, ensure_ascii=False)
+    #     print(f'Данные сохранены в wild_points_coord.json')
+    data_list = []
+    for d in data['value']['pickups']:
+        id = d['id']
+        coordinates = d['coordinates']
+        data_list.append({
+            'id': int(id),
+            'coordinates': coordinates
+        })
+    print("[INFO] координаты точек выдачи получены")
+    return data_list
+
+
 def get_points(payload: list, domen: str):
     """получаем id, адрес и описание пункта выдачи"""
     url = f"https://{domen}/webapi/poo/byids"
@@ -45,28 +67,6 @@ def get_points(payload: list, domen: str):
         # print(f'id: {d}\nАдресс: {address}\nОписание:\n{wayinfo}\n')
     print("[INFO] id, адрес и описания точек выдачи получены")
     return data_points_list
-
-
-def get_coord(domen):
-    """полечение координат и id точек выдачи"""
-    url = f'https://{domen}/webapi/spa/modules/pickups'
-    headers = {'User-Agent': "Mozilla/5.0", 'content-type': "application/json", 'x-requested-with': 'XMLHttpRequest'}
-    r = requests.get(url, headers=headers)
-    data = r.json()
-    # """сохраняем id  с координатами  в json"""
-    # with open('wild_points_coord.json', 'w', encoding='UTF-8') as file:
-    #     json.dump(data, file, indent=2, ensure_ascii=False)
-    #     print(f'Данные сохранены в wild_points_coord.json')
-    data_list = []
-    for d in data['value']['pickups']:
-        id = d['id']
-        coordinates = d['coordinates']
-        data_list.append({
-            'id': int(id),
-            'coordinates': coordinates
-        })
-    print("[INFO] координаты точек выдачи получены")
-    return data_list
 
 
 def merge_data(data1: list, data2: list):
