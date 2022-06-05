@@ -13,7 +13,7 @@ import pandas
     Беларусь: www.wildberries.by
     Израиль: wildberries.co.il
 По всем возникшим вопросам, можете писать в группу https://vk.com/happython
-Ссылка на статью: https://vk.com/@happython...
+Ссылка на статью: https://vk.com/@happython-sbor-koordinat-punktov-vydachi-zakazov-wildberries
 Отзывы, предложения, советы приветствуются.
 """
 
