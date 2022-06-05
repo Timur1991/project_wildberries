@@ -1,3 +1,6 @@
 .idea/
-*.xls;xlsx;csv
-
+*.xlsx
+wild.py
+wild2.py
+*.json
+wildberries_delivery.py

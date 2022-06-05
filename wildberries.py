@@ -6,8 +6,13 @@ import openpyxl
 import lxml
 
 
-# парсер wildberries
-# реализовал сбор названия и цены, скидку
+"""
+парсер торговой площадки Wildberries
+приношу свои извинения, но В ДАННЫЙ МОМЕНТ ПАРСЕР НЕ РАБОТАЕТ
+(постараюсь реанимировать, как появится свободное время)
+
+По всем возникшим вопросам, можете писать в группу https://vk.com/happython
+"""
 
 
 def get_html(url, params=None):
@@ -95,7 +100,8 @@ def parser(url):
 
 
 if __name__ == "__main__":
-    parser('https://www.wildberries.ru/brands/xiaomi')
+    # parser('https://www.wildberries.ru/brands/xiaomi')
+    parser('https://www.wildberries.ru/brands/xiaomi/all')
     """Примеры ссылок:"""
     # parser('https://www.wildberries.ru/catalog/sport/vidy-sporta/velosport/velosipedy')
     # parser('https://www.wildberries.ru/catalog/knigi/uchebnaya-literatura?xsubject=2076')
