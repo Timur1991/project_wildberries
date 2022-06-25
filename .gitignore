@@ -2,5 +2,12 @@
 *.xlsx
 wild.py
 wild2.py
+wild3.py
+wild4.py
+create_catalog.py
+parser_wb_on_catalog.py
+parser_wb_on_link.py
+get_good_count.py
 *.json
 wildberries_delivery.py
+wb_parser.py

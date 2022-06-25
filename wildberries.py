@@ -8,7 +8,7 @@ import lxml
 
 """
 парсер торговой площадки Wildberries
-приношу свои извинения, но В ДАННЫЙ МОМЕНТ ПАРСЕР НЕ РАБОТАЕТ
+приношу свои извинения, но В ДАННЫЙ МОМЕНТ ПАРСЕР НЕ РАБОТАЕТ (воспользуйтесь wb_parsser_on_catalog)
 (постараюсь реанимировать, как появится свободное время)
 
 По всем возникшим вопросам, можете писать в группу https://vk.com/happython
@@ -29,7 +29,7 @@ def get_pages(html):
     """получение количества страниц"""
     soup = BeautifulSoup(html.text, 'lxml')
     try:
-        good_count = soup.find('h1').find_next('span').get_text(strip=True).replace("\xa0", '').split()[0]
+        good_count = soup.find('span', class_='goods-count').get_text(strip=True).replace("\xa0", '')
         pages = int(good_count) // 100 + 1
     except:
         pages = 1
