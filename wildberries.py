@@ -7,9 +7,11 @@ import lxml
 
 
 """
+ДАННЫЙ ПАРСЕР НЕ АКТУАЛЕН, ОН НЕ РАБОТАЕТ. ССЫЛКА НА РАБОЧИЙ ПАРСЕР WILDBERRIES:
+https://github.com/Timur1991/project_wildberries/blob/master/wb_parser_on_catalog.py 
+
 парсер торговой площадки Wildberries
 приношу свои извинения, но В ДАННЫЙ МОМЕНТ ПАРСЕР НЕ РАБОТАЕТ (воспользуйтесь wb_parsser_on_catalog)
-(постараюсь реанимировать, как появится свободное время)
 
 По всем возникшим вопросам, можете писать в группу https://vk.com/happython
 """
