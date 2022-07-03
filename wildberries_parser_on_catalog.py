@@ -4,7 +4,7 @@ import pandas as pd
 
 
 """
-Парсер wildberries по ссылке на каталог
+Парсер wildberries по ссылке на каталог (указывать без фильтров)
 
 Парсер не идеален, есть множество вариантов реализации, со своими идеями 
 и предложениями обязательно пишите мне, либо в группу, ссылка ниже.
@@ -129,24 +129,9 @@ def save_excel(data, filename):
     print(f'Все сохранено в {filename}.xlsx')
 
 
-def parser():
+def parser(url, low_price, top_price):
     # получаем список каталогов
     catalog_list = get_catalogs_wb()
-
-    # url = input('Введите ссылку на категорию для сбора: ')
-    # low_price = int(input('Введите минимальную сумму товара: '))
-    # top_price = int(input('Введите максимульную сумму товара: '))
-
-    # тестовые данные 1
-    url = 'https://www.wildberries.ru/catalog/sport/vidy-sporta/velosport/velosipedy'
-    low_price = 50000
-    top_price = 100000
-
-    # тестовые данные 2
-    # url = 'https://www.wildberries.ru/catalog/knigi/vospitanie-i-razvitie-rebenka'
-    # low_price = 1000
-    # top_price = 100000
-
     try:
         # поиск введенной категории в общем каталоге
         name_category, shard, query = search_category_in_catalog(url=url, catalog_list=catalog_list)
@@ -161,5 +146,15 @@ def parser():
 
 
 if __name__ == '__main__':
-    parser()
+    """ссылку на каталог или подкаталог, указывать без фильтров (без ценовых, сортировки и тд.)"""
+    # url = input('Введите ссылку на категорию для сбора: ')
+    # low_price = int(input('Введите минимальную сумму товара: '))
+    # top_price = int(input('Введите максимульную сумму товара: '))
+
+    """данные для теста. собераем товар с раздела велосипеды в ценовой категории от 50тыс, до 100тыс"""
+    url = 'https://www.wildberries.ru/catalog/sport/vidy-sporta/velosport/velosipedy'
+    low_price = 50000
+    top_price = 100000
+
+    parser(url, low_price, top_price)
 
