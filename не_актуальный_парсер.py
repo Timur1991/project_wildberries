@@ -8,10 +8,10 @@ import lxml
 
 """
 ДАННЫЙ ПАРСЕР НЕ АКТУАЛЕН, ОН НЕ РАБОТАЕТ. ССЫЛКА НА РАБОЧИЙ ПАРСЕР WILDBERRIES:
-https://github.com/Timur1991/project_wildberries/blob/master/wb_parser_on_catalog.py 
+https://github.com/Timur1991/project_wildberries/blob/master/wildberries_parser_on_catalog.py
 
 парсер торговой площадки Wildberries
-приношу свои извинения, но В ДАННЫЙ МОМЕНТ ПАРСЕР НЕ РАБОТАЕТ (воспользуйтесь wb_parsser_on_catalog)
+приношу свои извинения, но В ДАННЫЙ МОМЕНТ ПАРСЕР НЕ РАБОТАЕТ (воспользуйтесь wildberries_parser_on_catalog.py)
 
 По всем возникшим вопросам, можете писать в группу https://vk.com/happython
 """
