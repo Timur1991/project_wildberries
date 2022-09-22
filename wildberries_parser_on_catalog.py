@@ -11,6 +11,8 @@ import pandas as pd
 
 Ссылка на статью ВКонтакте: https://vk.com/@happython-parser-wildberries
 По всем возникшим вопросам, можете писать в группу https://vk.com/happython
+
+парсер wildberries по каталогам 2022, обновлен 22.09.2022 - на данное число работает исправно
 """
 
 
