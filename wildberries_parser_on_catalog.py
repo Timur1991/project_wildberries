@@ -16,13 +16,13 @@ import pandas as pd
 
 def get_catalogs_wb():
     """получение каталога вб"""
-    url = 'https://static.wbstatic.net/data/main-menu-ru-ru.json'
+    url = 'https://www.wildberries.ru/webapi/menu/main-menu-ru-ru.json'
     headers = {'Accept': "*/*", 'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     response = requests.get(url, headers=headers)
     data = response.json()
-    # with open('wb_catalogs_data.json', 'w', encoding='UTF-8') as file:
-    #     json.dump(data, file, indent=2, ensure_ascii=False)
-    #     print(f'Данные сохранены в wb_catalogs_data.json')
+    with open('wb_catalogs_data.json', 'w', encoding='UTF-8') as file:
+        json.dump(data, file, indent=2, ensure_ascii=False)
+        print(f'Данные сохранены в wb_catalogs_data_sample.json')
     data_list = []
     for d in data:
         try:
@@ -105,10 +105,11 @@ def get_content(shard, query, low_price=1, top_price=200000):
     data_list = []
     for page in range(1, 101):
         print(f'Сбор позиций со страницы {page} из 100')
-        url = f'https://wbxcatalog-ru.wildberries.ru/{shard}' \
-              f'/catalog?appType=1&curr=rub&dest=-1029256,-102269,-1278703,-1255563' \
-              f'&{query}&lang=ru&locale=ru&sort=sale&page={page}' \
-              f'&priceU={low_price * 100};{top_price * 100}'
+        # url = f'https://wbxcatalog-ru.wildberries.ru/{shard}' \
+        #       f'/catalog?appType=1&curr=rub&dest=-1029256,-102269,-1278703,-1255563' \
+        #       f'&{query}&lang=ru&locale=ru&sort=sale&page={page}' \
+        #       f'&priceU={low_price * 100};{top_price * 100}'
+        url = f'https://catalog.wb.ru/catalog/{shard}/catalog?appType=1&curr=rub&dest=-1075831,-77677,-398551,12358499&locale=ru&page={page}&priceU={low_price * 100};{top_price * 100}&reg=0&regions=64,83,4,38,80,33,70,82,86,30,69,1,48,22,66,31,40&sort=popular&spp=0&{query}'
         r = requests.get(url, headers=headers)
         data = r.json()
         print(f'Добавлено позиций: {len(get_data_from_json(data))}')
