@@ -1,7 +1,7 @@
 import requests
 import json
 import pandas as pd
-from tqdm import tqdm
+
 
 """
 Парсер wildberries по ссылке на каталог (указывать без фильтров)
@@ -18,44 +18,56 @@ https://happypython.ru/2022/07/21/парсер-wildberries/
 """
 
 
-def get_catalogs_wb(target):
+def get_catalogs_wb():
     """получение каталога вб"""
     url = 'https://www.wildberries.ru/webapi/menu/main-menu-ru-ru.json'
     headers = {'Accept': "*/*", 'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    response = requests.get(url, headers=headers).json()
-
+    response = requests.get(url, headers=headers)
+    data = response.json()
     with open('wb_catalogs_data.json', 'w', encoding='UTF-8') as file:
-        json.dump(response, file, indent=2, ensure_ascii=False)
+        json.dump(data, file, indent=2, ensure_ascii=False)
         print(f'Данные сохранены в wb_catalogs_data_sample.json')
     data_list = []
-    for d in response:
+    for d in data:
         try:
             for child in d['childs']:
-                if target == child['url']:
+                try:
+                    category_name = child['name']
+                    category_url = child['url']
+                    shard = child['shard']
+                    query = child['query']
                     data_list.append({
-                        'category_name': child['name'],
-                        'category_url': child['url'],
-                        'shard': child['shard'],
-                        'query': child['query']})
-                else:
+                        'category_name': category_name,
+                        'category_url': category_url,
+                        'shard': shard,
+                        'query': query})
+                except:
+                    continue
+                try:
                     for sub_child in child['childs']:
+                        category_name = sub_child['name']
+                        category_url = sub_child['url']
+                        shard = sub_child['shard']
+                        query = sub_child['query']
                         data_list.append({
-                            'category_name': sub_child['name'],
-                            'category_url': sub_child['url'],
-                            'shard': sub_child['shard'],
-                            'query': sub_child['query']})
+                            'category_name': category_name,
+                            'category_url': category_url,
+                            'shard': shard,
+                            'query': query})
+                except:
+                    # print(f'не имеет дочерних каталогов *{i["name"]}*')
+                    continue
         except:
             # print(f'не имеет дочерних каталогов *{d["name"]}*')
             continue
-
     return data_list
 
 
-def search_category_in_catalog(target, catalog_list):
+def search_category_in_catalog(url, catalog_list):
     """пишем проверку пользовательской ссылки на наличии в каталоге"""
     try:
         for catalog in catalog_list:
-            if catalog['category_url'] == target:
+            if catalog['category_url'] == url.split('https://www.wildberries.ru')[-1]:
                 print(f'найдено совпадение: {catalog["category_name"]}')
                 name_category = catalog['category_name']
                 shard = catalog['shard']
@@ -95,8 +107,8 @@ def get_content(shard, query, low_price=None, top_price=None):
     # вставляем ценовые рамки для уменьшения выдачи, вилбериес отдает только 100 страниц
     headers = {'Accept': "*/*", 'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     data_list = []
-    for page in tqdm(range(1, 101)):
-
+    for page in range(1, 101):
+        print(f'Сбор позиций со страницы {page} из 100')
         # url = f'https://wbxcatalog-ru.wildberries.ru/{shard}' \
         #       f'/catalog?appType=1&curr=rub&dest=-1029256,-102269,-1278703,-1255563' \
         #       f'&{query}&lang=ru&locale=ru&sort=sale&page={page}' \
@@ -104,7 +116,9 @@ def get_content(shard, query, low_price=None, top_price=None):
         url = f'https://catalog.wb.ru/catalog/{shard}/catalog?appType=1&curr=rub&dest=-1075831,-77677,-398551,12358499' \
               f'&locale=ru&page={page}&priceU={low_price * 100};{top_price * 100}' \
               f'&reg=0&regions=64,83,4,38,80,33,70,82,86,30,69,1,48,22,66,31,40&sort=popular&spp=0&{query}'
-        data = requests.get(url, headers=headers).json()
+        r = requests.get(url, headers=headers)
+        data = r.json()
+        print(f'Добавлено позиций: {len(get_data_from_json(data))}')
         if len(get_data_from_json(data)) > 0:
             data_list.extend(get_data_from_json(data))
         else:
@@ -124,11 +138,10 @@ def save_excel(data, filename):
 
 def parser(url, low_price, top_price):
     # получаем список каталогов
-    target = url.split('https://www.wildberries.ru')[-1]
-    catalog_list = get_catalogs_wb(target)
+    catalog_list = get_catalogs_wb()
     try:
         # поиск введенной категории в общем каталоге
-        name_category, shard, query = search_category_in_catalog(target, catalog_list=catalog_list)
+        name_category, shard, query = search_category_in_catalog(url=url, catalog_list=catalog_list)
         # сбор данных в найденном каталоге
         data_list = get_content(shard=shard, query=query, low_price=low_price, top_price=top_price)
         # сохранение найденных данных
@@ -147,6 +160,8 @@ if __name__ == '__main__':
 
     """данные для теста. собераем товар с раздела велосипеды в ценовой категории от 50тыс, до 100тыс"""
     url = 'https://www.wildberries.ru/catalog/sport/vidy-sporta/velosport/velosipedy'
+    url = 'https://www.wildberries.ru/catalog/elektronika/noutbuki-pereferiya/periferiynye-ustroystva/mfu'
+    url = 'https://www.wildberries.ru/catalog/dlya-doma/predmety-interera/dekorativnye-nakleyki'
     low_price = 5000
     top_price = 100000
 
