@@ -79,7 +79,7 @@ def merge_data(data1: list, data2: list):
     writer = pandas.ExcelWriter('wb_points.xlsx', engine='xlsxwriter')
     df.to_excel(writer, 'data')
     # df.to_json(writer)
-    writer.save()
+    writer.close()
     print(f'[INFO] Данные объедены и сохранены в wb_points.xlsx\n'
           f'[INFO] Количество найденных пунктов выдачи:{len(df)}\n'
           f'Работа парсера завершена')
