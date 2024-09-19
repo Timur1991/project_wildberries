@@ -25,6 +25,7 @@ https://happypython.ru/2022/07/21/parser-wildberries/  # ссылка на об�
             'name': название,
             'price': цена,
             'salePriceU': цена со скидкой,
+            'cashback': кэшбек за отзыв,
             'sale': % скидки,
             'brand': бренд,
             'rating': рейтинг товара,
@@ -55,6 +56,12 @@ def get_data_category(catalogs_wb: dict) -> list:
             'query': catalogs_wb.get('query', None)
         })
     elif isinstance(catalogs_wb, dict):
+        catalog_data.append({
+            'name': f"{catalogs_wb['name']}",
+            'shard': catalogs_wb.get('shard', None),
+            'url': catalogs_wb['url'],
+            'query': catalogs_wb.get('query', None)
+        })
         catalog_data.extend(get_data_category(catalogs_wb['childs']))
     else:
         for child in catalogs_wb:
@@ -112,21 +119,7 @@ def get_data_from_json(json_file: dict) -> list:
 @retry(Exception, tries=-1, delay=0)
 def scrap_page(page: int, shard: str, query: str, low_price: int, top_price: int, discount: int = None) -> dict:
     """Сбор данных со страниц"""
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/113.0",
-        "Accept": "*/*",
-        "Accept-Language": "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Origin": "https://www.wildberries.ru",
-        'Content-Type': 'application/json; charset=utf-8',
-        'Transfer-Encoding': 'chunked',
-        "Connection": "keep-alive",
-        'Vary': 'Accept-Encoding',
-        'Content-Encoding': 'gzip',
-        "Sec-Fetch-Dest": "empty",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "cross-site"
-    }
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0)"}
     url = f'https://catalog.wb.ru/catalog/{shard}/catalog?appType=1&curr=rub' \
           f'&dest=-1257786' \
           f'&locale=ru' \
@@ -173,7 +166,7 @@ def parser(url: str, low_price: int = 1, top_price: int = 1000000, discount: int
         # поиск введенной категории в общем каталоге
         category = search_category_in_catalog(url=url, catalog_list=catalog_data)
         data_list = []
-        for page in range(1, 101):  # вб отдает 50 страниц товара (раньше было 100)
+        for page in range(1, 51):  # вб отдает 50 страниц товара (раньше было 100)
             data = scrap_page(
                 page=page,
                 shard=category['shard'],
