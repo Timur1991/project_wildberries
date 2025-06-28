@@ -3,6 +3,8 @@ import requests
 import json
 import pandas as pd
 from retry import retry
+from openpyxl.worksheet.dimensions import Dimension
+import openpyxl
 # pip install openpyxl
 # pip install xlsxwriter
 
@@ -134,27 +136,25 @@ def scrap_page(page: int, shard: str, query: str, low_price: int, top_price: int
 
 
 def save_excel(data: list, filename: str):
-    """сохранение результата в excel файл"""
+    """Сохранение результата в excel файл"""
     df = pd.DataFrame(data)
-    writer = pd.ExcelWriter(f'{filename}.xlsx')
-    df.to_excel(writer, sheet_name='data', index=False)
-    # указываем размеры каждого столбца в итоговом файле
-    writer.sheets['data'].set_column(0, 1, width=10)
-    writer.sheets['data'].set_column(1, 2, width=34)
-    writer.sheets['data'].set_column(2, 3, width=8)
-    writer.sheets['data'].set_column(3, 4, width=9)
-    writer.sheets['data'].set_column(4, 5, width=8)
-    writer.sheets['data'].set_column(5, 6, width=4)
-    writer.sheets['data'].set_column(6, 7, width=20)
-    writer.sheets['data'].set_column(7, 8, width=6)
-    writer.sheets['data'].set_column(8, 9, width=23)
-    writer.sheets['data'].set_column(9, 10, width=13)
-    writer.sheets['data'].set_column(10, 11, width=11)
-    writer.sheets['data'].set_column(11, 12, width=12)
-    writer.sheets['data'].set_column(12, 13, width=15)
-    writer.sheets['data'].set_column(13, 14, width=15)
-    writer.sheets['data'].set_column(14, 15, width=67)
-    writer.close()
+    
+    with pd.ExcelWriter(f'{filename}.xlsx', engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='data', index=False)
+        
+        workbook = writer.book
+        worksheet = writer.sheets['data']
+
+        column_widths = {
+            'A': 10, 'B': 34, 'C': 8, 'D': 9,
+            'E': 8, 'F': 4, 'G': 20, 'H': 6,
+            'I': 23, 'J': 13, 'K': 11, 'L': 12,
+            'M': 15, 'N': 15, 'O': 67
+        }
+        
+        for col, width in column_widths.items():
+            worksheet.column_dimensions[col].width = width
+    
     print(f'Все сохранено в {filename}.xlsx\n')
 
 
@@ -200,12 +200,12 @@ if __name__ == '__main__':
             print('Заказать разработку парсера Вайлдберрис:  https://vk.com/atomnuclear'
                   '\nИли в группу ВК: https://vk.com/parsers_wildberries (рекомендую подписаться)\n')
             url = input('Введите ссылку на категорию без фильтров для сбора(или "q" для выхода):\n')
-            if url == 'q':
+            if url.lower() == 'q':
                 break
             low_price = int(input('Введите минимальную сумму товара: '))
             top_price = int(input('Введите максимульную сумму товара: '))
             discount = int(input('Введите минимальную скидку(введите 0 если без скидки): '))
             parser(url=url, low_price=low_price, top_price=top_price, discount=discount)
         except:
-            print('произошла ошибка данных при вводе, проверте правильность введенных данных,\n'
+            print('произошла ошибка данных при вводе, проверьте правильность введенных данных,\n'
                   'Перезапуск...')
