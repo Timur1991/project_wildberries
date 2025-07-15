@@ -9,8 +9,10 @@ import openpyxl
 # pip install xlsxwriter
 
 """
-ОБНОВЛЕН: на 20.08.2024 работает исправно!
+ОБНОВЛЕН: на 15.07.2025 работает исправно!
 
+Доступен парсер бот в Telegram, присоединяйтесь: https://t.me/wildberries_scraping_bot
+https://t.me/timur_parsing_blog  # канал в Telegram разработка парсера
 
 https://vk.com/parsers_wildberries  # группа ВК парсера ВБ
 https://vk.com/happython  # группа ВК где можете заказывать парсеры и скрипты
@@ -28,7 +30,6 @@ https://happypython.ru/2022/07/21/parser-wildberries/  # ссылка на об�
             'price': цена,
             'salePriceU': цена со скидкой,
             'cashback': кэшбек за отзыв,
-            'sale': % скидки,
             'brand': бренд,
             'rating': рейтинг товара,
             'supplier': продавец,
@@ -50,24 +51,24 @@ def get_catalogs_wb() -> dict:
 def get_data_category(catalogs_wb: dict) -> list:
     """сбор данных категорий из каталога Wildberries"""
     catalog_data = []
-    if isinstance(catalogs_wb, dict) and 'childs' not in catalogs_wb:
-        catalog_data.append({
-            'name': f"{catalogs_wb['name']}",
-            'shard': catalogs_wb.get('shard', None),
-            'url': catalogs_wb['url'],
-            'query': catalogs_wb.get('query', None)
-        })
-    elif isinstance(catalogs_wb, dict):
-        catalog_data.append({
-            'name': f"{catalogs_wb['name']}",
-            'shard': catalogs_wb.get('shard', None),
-            'url': catalogs_wb['url'],
-            'query': catalogs_wb.get('query', None)
-        })
-        catalog_data.extend(get_data_category(catalogs_wb['childs']))
-    else:
-        for child in catalogs_wb:
-            catalog_data.extend(get_data_category(child))
+    stack = []
+    stack.append(catalogs_wb)
+    while stack:
+        current = stack.pop()
+
+        if isinstance(current, dict):
+            if 'childs' not in current:
+                catalog_data.append({
+                    'name': f"{current['name']}",
+                    'shard': current.get('shard', None),
+                    'url': current['url'],
+                    'query': current.get('query', None)
+                })
+            else:
+                stack.append(current['childs'])
+        elif isinstance(current, list):
+            for item in reversed(current):
+                stack.append(item)
     return catalog_data
 
 
@@ -85,10 +86,11 @@ def get_data_from_json(json_file: dict) -> list:
     for data in json_file['data']['products']:
         sku = data.get('id')
         name = data.get('name')
-        price = int(data.get("priceU") / 100)
-        salePriceU = int(data.get('salePriceU') / 100)
+        # price = int(data.get("priceU") / 100)
+        # salePriceU = int(data.get('salePriceU') / 100)
+        price = int(data.get("sizes")[0].get('price').get('product') / 100)
+        basic = int(data.get("sizes")[0].get('price').get('basic') / 100)
         cashback = data.get('feedbackPoints')
-        sale = data.get('sale')
         brand = data.get('brand')
         rating = data.get('rating')
         supplier = data.get('supplier')
@@ -100,10 +102,9 @@ def get_data_from_json(json_file: dict) -> list:
         data_list.append({
             'id': sku,
             'name': name,
-            'price': price,
-            'salePriceU': salePriceU,
+            'price': basic,
+            'salePriceU': price,
             'cashback': cashback,
-            'sale': sale,
             'brand': brand,
             'rating': rating,
             'supplier': supplier,
@@ -122,7 +123,7 @@ def get_data_from_json(json_file: dict) -> list:
 def scrap_page(page: int, shard: str, query: str, low_price: int, top_price: int, discount: int = None) -> dict:
     """Сбор данных со страниц"""
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0)"}
-    url = f'https://catalog.wb.ru/catalog/{shard}/catalog?appType=1&curr=rub' \
+    url = f'https://catalog.wb.ru/catalog/{shard}/v2/catalog?appType=1&curr=rub' \
           f'&dest=-1257786' \
           f'&locale=ru' \
           f'&page={page}' \
@@ -166,7 +167,7 @@ def parser(url: str, low_price: int = 1, top_price: int = 1000000, discount: int
         # поиск введенной категории в общем каталоге
         category = search_category_in_catalog(url=url, catalog_list=catalog_data)
         data_list = []
-        for page in range(1, 51):  # вб отдает 50 страниц товара (раньше было 100)
+        for page in range(1, 21):
             data = scrap_page(
                 page=page,
                 shard=category['shard'],
@@ -196,8 +197,8 @@ if __name__ == '__main__':
     """
     while True:
         try:
-            print('По вопросу парсинга Wildberries, отзывам и предложениям пишите в https://vk.com/happython')
-            print('Заказать разработку парсера Вайлдберрис:  https://vk.com/atomnuclear'
+            print('По вопросу парсинга Wildberries, отзывам и предложениям пишите в https://t.me/timur_parsing_blog')
+            print('Заказать разработку парсера Вайлдберрис:  https://t.me/object_13'
                   '\nИли в группу ВК: https://vk.com/parsers_wildberries (рекомендую подписаться)\n')
             url = input('Введите ссылку на категорию без фильтров для сбора(или "q" для выхода):\n')
             if url.lower() == 'q':
