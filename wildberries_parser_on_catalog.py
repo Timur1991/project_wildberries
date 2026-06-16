@@ -1,15 +1,11 @@
-import datetime
+from math import floor
 import requests
-import json
 import pandas as pd
 from retry import retry
-from openpyxl.worksheet.dimensions import Dimension
-import openpyxl
-# pip install openpyxl
-# pip install xlsxwriter
+
 
 """
-ОБНОВЛЕН: на 15.07.2025 работает исправно!
+ОБНОВЛЕН: 16.06.2026 восстановил работу парсера
 
 Доступен парсер бот в Telegram, присоединяйтесь: https://t.me/wildberries_scraping_bot
 https://t.me/timur_parsing_blog  # канал в Telegram разработка парсера
@@ -83,12 +79,11 @@ def search_category_in_catalog(url: str, catalog_list: list) -> dict:
 def get_data_from_json(json_file: dict) -> list:
     """извлекаем из json данные"""
     data_list = []
-    for data in json_file['data']['products']:
+    for data in json_file['products']:
         sku = data.get('id')
         name = data.get('name')
-        # price = int(data.get("priceU") / 100)
-        # salePriceU = int(data.get('salePriceU') / 100)
         price = int(data.get("sizes")[0].get('price').get('product') / 100)
+        price_wbp = floor(price * (1 - wb_percent / 100))
         basic = int(data.get("sizes")[0].get('price').get('basic') / 100)
         cashback = data.get('feedbackPoints')
         brand = data.get('brand')
@@ -102,8 +97,9 @@ def get_data_from_json(json_file: dict) -> list:
         data_list.append({
             'id': sku,
             'name': name,
-            'price': basic,
+            'price_wb': price_wbp,
             'salePriceU': price,
+            'price': basic,
             'cashback': cashback,
             'brand': brand,
             'rating': rating,
@@ -113,24 +109,22 @@ def get_data_from_json(json_file: dict) -> list:
             'reviewRating': reviewRating,
             'promoTextCard': promoTextCard,
             'promoTextCat': promoTextCat,
-            'link': f'https://www.wildberries.ru/catalog/{data.get("id")}/detail.aspx?targetUrl=BP'
+            'link': f'https://www.wildberries.ru/catalog/{data.get("id")}/detail.aspx'
         })
-        # print(f"SKU:{data['id']} Цена: {int(data['salePriceU'] / 100)} Название: {data['name']} Рейтинг: {data['rating']}")
     return data_list
 
 
 @retry(Exception, tries=-1, delay=0)
-def scrap_page(page: int, shard: str, query: str, low_price: int, top_price: int, discount: int = None) -> dict:
+def scrap_page(page: int, shard: str, query: str, low_price: int, top_price: int) -> dict:
     """Сбор данных со страниц"""
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0)"}
-    url = f'https://catalog.wb.ru/catalog/{shard}/v2/catalog?appType=1&curr=rub' \
+    url = f'https://catalog.wb.ru/catalog/{shard}/v4/catalog?appType=1&curr=rub' \
           f'&dest=-1257786' \
           f'&locale=ru' \
           f'&page={page}' \
           f'&priceU={low_price * 100};{top_price * 100}' \
           f'&sort=popular&spp=0' \
-          f'&{query}' \
-          f'&discount={discount}'
+          f'&{query}'
     r = requests.get(url, headers=headers)
     print(f'Статус: {r.status_code} Страница {page} Идет сбор...')
     return r.json()
@@ -142,15 +136,14 @@ def save_excel(data: list, filename: str):
     
     with pd.ExcelWriter(f'{filename}.xlsx', engine='openpyxl') as writer:
         df.to_excel(writer, sheet_name='data', index=False)
-        
-        workbook = writer.book
+
         worksheet = writer.sheets['data']
 
         column_widths = {
-            'A': 10, 'B': 34, 'C': 8, 'D': 9,
-            'E': 8, 'F': 4, 'G': 20, 'H': 6,
-            'I': 23, 'J': 13, 'K': 11, 'L': 12,
-            'M': 15, 'N': 15, 'O': 67
+            'A': 11, 'B': 34, 'C': 10, 'D': 10,
+            'E': 10, 'F': 8, 'G': 13, 'H': 6,
+            'I': 16, 'J': 13, 'K': 10, 'L': 12,
+            'M': 15, 'N': 15, 'O': 55
         }
         
         for col, width in column_widths.items():
@@ -159,7 +152,7 @@ def save_excel(data: list, filename: str):
     print(f'Все сохранено в {filename}.xlsx\n')
 
 
-def parser(url: str, low_price: int = 1, top_price: int = 1000000, discount: int = 0):
+def parser(url: str, low_price: int = 1, top_price: int = 1000000):
     """основная функция"""
     # получаем данные по заданному каталогу
     catalog_data = get_data_category(get_catalogs_wb())
@@ -173,8 +166,7 @@ def parser(url: str, low_price: int = 1, top_price: int = 1000000, discount: int
                 shard=category['shard'],
                 query=category['query'],
                 low_price=low_price,
-                top_price=top_price,
-                discount=discount)
+                top_price=top_price)
             print(f'Добавлено позиций: {len(get_data_from_json(data))}')
             if len(get_data_from_json(data)) > 0:
                 data_list.extend(get_data_from_json(data))
@@ -183,7 +175,7 @@ def parser(url: str, low_price: int = 1, top_price: int = 1000000, discount: int
         print(f'Сбор данных завершен. Собрано: {len(data_list)} товаров.')
         # сохранение найденных данных
         save_excel(data_list, f'{category["name"]}_from_{low_price}_to_{top_price}')
-        print(f'Ссылка для проверки: {url}?priceU={low_price * 100};{top_price * 100}&discount={discount}')
+        print(f'Ссылка для проверки: {url}?priceU={low_price * 100};{top_price * 100}')
     except TypeError:
         print('Ошибка! Возможно не верно указан раздел. Удалите все доп фильтры с ссылки')
     except PermissionError:
@@ -195,6 +187,14 @@ if __name__ == '__main__':
     ссылка для теста. собераем товар с раздела велосипеды
     https://www.wildberries.ru/catalog/sport/vidy-sporta/velosport/velosipedy
     """
+
+    # тест
+    # url = 'https://www.wildberries.ru/catalog/sport/vidy-sporta/velosport/velosipedy'
+    # wb_percent = 3
+    # low_price = 5000
+    # top_price = 7000
+    # parser(url=url, low_price=low_price, top_price=top_price)
+
     while True:
         try:
             print('По вопросу парсинга Wildberries, отзывам и предложениям пишите в https://t.me/timur_parsing_blog')
@@ -205,8 +205,8 @@ if __name__ == '__main__':
                 break
             low_price = int(input('Введите минимальную сумму товара: '))
             top_price = int(input('Введите максимульную сумму товара: '))
-            discount = int(input('Введите минимальную скидку(введите 0 если без скидки): '))
-            parser(url=url, low_price=low_price, top_price=top_price, discount=discount)
+            wb_percent = int(input('Введите свою скидку кошелька WB: '))
+            parser(url=url, low_price=low_price, top_price=top_price)
         except:
             print('произошла ошибка данных при вводе, проверьте правильность введенных данных,\n'
                   'Перезапуск...')

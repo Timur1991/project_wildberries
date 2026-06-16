@@ -5,8 +5,14 @@
 
 # Парсер wildberries по ссылке на каталог (указывать без фильтров)
 
+ОБНОВЛЕН: на 16.06.2026 работает исправно!
 ОБНОВЛЕН: на 15.07.2025 работает исправно!
 ОБНОВЛЕН: на 20.08.2024 работает исправно!
+
+Как запустить:
+1) Установить зависимости: `pip install -r requirements.txt`
+2) Открыть `wildberries_parser_on_catalog.py` и задать `url`, `wb_percent`, `low_price`, `top_price`
+3) Запустить: `python wildberries_parser_on_catalog.py`
 
 https://t.me/timur_parsing_blog  # канал парсера! сюда вопросы и предложения по парсеру
 
